@@ -1,0 +1,2 @@
+codecs = {"monet": {"ip": "10.1.110.140", "user": "admin", "password":"something","mac":"E4:C7:22:66:A6:60" }, "vangogh": {"ip": "10.1.110.154", "user": "admin", "password":"something","mac":"E4:C7:22:66:61:6C" },
+			"kandinsky": {"ip": "10.1.110.152", "user": "admin", "password":"something","mac":"00:AF:1F:F0:DF:18" }, "kandinskySpycam": {"ip": "10.1.110.151", "user": "admin", "password":"something","mac":"E4:C7:22:69:B7:5C" }}
