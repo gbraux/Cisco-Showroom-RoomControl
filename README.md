@@ -11,9 +11,9 @@ L’interface web des codecs offre une nouvelle option permettant la personnalis
 ![Image](https://github.com/gbraux/Cisco-Showroom-RoomControl/raw/master/Screenshots/Room_Control_Screenshot.png)
 
 Dans ce code d'exemple, implémenté dans le Showroom Cisco Collaboration France, les systèmes tiers contrôlables à ce jour sont :
-•	Lampadaire halogène de la salle Monet
-•	Store occultant électrique de la salle Van Gogh
-•	Matrice Vidéo Kramer
+- Lampadaire halogène de la salle Monet
+- Store occultant électrique de la salle Van Gogh
+- Matrice Vidéo Kramer
 
 ## Architecture
 
