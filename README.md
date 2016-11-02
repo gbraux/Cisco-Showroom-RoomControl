@@ -24,19 +24,19 @@ Chaque action de l’utilisateur sur l’interface tactile génère un évèneme
 
 ### Middleware de contrôle
 
-Le middleware de contrôle (automation) est le lien entre le codec et les éléments à piloter. Il interprète les évènements du codec (« bouton appuyé ») et les traduit en ordre (ou suite d’ordres) compréhensibles par les dispositifs à piloter.
+Le middleware de contrôle (RoomControlHandler.py) est le lien entre le codec et les éléments à piloter. Il interprète les évènements du codec (« bouton appuyé ») et les traduit en ordre (ou suite d’ordres) compréhensibles par les dispositifs à piloter.
 
-Au showroom, il s’agit d’une application Python 3.5 (non compatible Python 2.x) active sur le serveur « WebServer » (10.1.20.21).
+Il s’agit d’une application Python 3.5 (non compatible Python 2.x) active sur un serveur quelconque (Windows ou Linux).
 
-Cette application est enregistrée en tant que service windows « room_control » (via l’application nssm.exe) lui permettant de démarrer automatiquement au démarrage du serveur (sans nécessiter l’ouverture d’une session).
+Pour windows, cette application est enregistrée en tant que service windows « room_control » (via l’application nssm.exe) lui permettant de démarrer automatiquement au démarrage du serveur (sans nécessiter l’ouverture d’une session).
 
 ![Image](https://github.com/gbraux/Cisco-Showroom-RoomControl/raw/master/Screenshots/NSSM_Screenshot.png)
 
 Le middleware agit de la façon suivante :
 
-1.	Immédiatement après le démarrage, l’application s’enregistre (HTTP POST) auprès de l’API de gestion d’évènement du/des codecs. Cela donne l’ordre au(x) codec(s) de transmettre l’ensemble des évènements UX à au middleware sur le port 1235.
+1.	Immédiatement après le démarrage, l’application s’enregistre (HTTP POST) auprès de l’API de gestion d’évènement du/des codecs. Cela donne l’ordre au(x) codec(s) de transmettre l’ensemble des évènements UX au middleware sur le port 1412.
 
-2.	Le middleware se met en écoute sur le port 1235 et attends les évènements du/des codecs.
+2.	Le middleware se met en écoute sur le port 1412 et attends les évènements du/des codecs.
 
 3.	En cas de réception d’un évènement, le middleware détermine si il s’agit d’un évènements à gérer ou non, et prends les actions nécessaires. Lorsque le middleware écoute des évènements de plusieurs codecs, l’adresse MAC présenté dans le message de l’évènement est utilisée pour en identifier la source.
 
@@ -46,11 +46,11 @@ Le middleware agit de la façon suivante :
 
 ### Systemes controlés
 
-La commutation on/off des systèmes est réalisé par des Relais IP KMTronic 2 canaux : http://kmtronic.com/km-web-two-relay-box.html.
+La commutation on/off des systèmes est réalisée par des Relais IP KMTronic 2 canaux : http://kmtronic.com/km-web-two-relay-box.html.
 
 ![Image](https://raw.githubusercontent.com/gbraux/Cisco-Showroom-RoomControl/master/Screenshots/relay_screenshot.jpg)
 
-Ces relais sont connectés (RJ45) sur le réseau du showroom, et disposent d’une API HTTP. L’API permet de changer les états des relais, mais aussi d’obtenir l’état courant (ouvert/fermé).
+Ces relais sont connectés (RJ45) sur le réseau, et disposent d’une API HTTP. L’API permet de changer les états des relais, mais aussi d’obtenir l’état courant (ouvert/fermé).
 
 Pour le contrôle de l’éclairage halogène de la salle Monet, le relais est positionné dans le faux-plancher. Il est en coupure sur le câble électrique CE qui alimente l’éclairage, et seul 1 canal est utilisé.
 
