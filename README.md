@@ -7,6 +7,7 @@ La fonctionnalité « Room Control » est disponible sur l’ensemble des termin
 
 L’interface web des codecs offre une nouvelle option permettant la personnalisation de la dalle Touch 10 en mode WYSIWYG.
 
+![Image](https://github.com/gbraux/Cisco-Showroom-RoomControl/raw/master/Screenshots/ShowroomLayout.PNG)
 ![Image](https://github.com/gbraux/Cisco-Showroom-RoomControl/raw/master/Screenshots/Room_Control_Screenshot.png)
 
 Dans ce code d'exemple, implémenté dans le Showroom Cisco Collaboration France, les systèmes tiers contrôlables à ce jour sont :
