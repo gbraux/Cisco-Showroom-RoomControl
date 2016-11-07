@@ -5,29 +5,26 @@
     <Icon>Lightbulb</Icon>
     <Type>Statusbar</Type>
     <Page>
-      <Name>Eclairage &amp; Stores</Name>
+      <Name>Eclairage</Name>
       <Row>
-        <Name>--- ECLAIRAGE (Monet)</Name>
-      </Row>
-      <Row>
-        <Name>Eclairage d'ambiance auto</Name>
-        <Widget>
-          <WidgetId>autoLightButton</WidgetId>
-          <Type>ToggleButton</Type>
-        </Widget>
-      </Row>
-      <Row>
-        <Name>Eclairage d'ambiance manuel</Name>
+        <Name>Allumer / Eteindre éclairage d'ambiance</Name>
         <Widget>
           <WidgetId>lightButton</WidgetId>
           <Type>ToggleButton</Type>
         </Widget>
       </Row>
       <Row>
-        <Name>--- STORES (Van Gogh)</Name>
+        <Name>Activation automatique de l'éclairage sur appel</Name>
+        <Widget>
+          <WidgetId>autoLightButton</WidgetId>
+          <Type>ToggleButton</Type>
+        </Widget>
       </Row>
+    </Page>
+    <Page>
+      <Name>Stores électriques</Name>
       <Row>
-        <Name>Stores électriques auto</Name>
+        <Name>Activation automatique des stores sur appel</Name>
         <Widget>
           <WidgetId>storeAutoButton</WidgetId>
           <Type>ToggleButton</Type>
