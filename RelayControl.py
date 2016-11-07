@@ -4,8 +4,9 @@
 import time
 import urllib.request
 from retrying import retry
-#from six.moves import urllib
 import xml.etree.ElementTree as ET
+import base64
+import http.client
 
 class RelayControl(object):
 	def __init__(self, ip="192.168.11.72", port=80, username="admin", password="admin"):
@@ -15,12 +16,6 @@ class RelayControl(object):
 		self._password = password
 		self._relay1State = None
 		self._relay2State = None
-		
-		# authinfo = urllib.request.HTTPPasswordMgrWithDefaultRealm()
-		# authinfo.add_password(None, self._ip, self._username, self._password)
-		# handler = urllib.request.HTTPBasicAuthHandler(authinfo)
-		# myopener = urllib.request.build_opener(handler)
-		# opened = urllib.request.install_opener(myopener)
 		
 		self._UpdateRelaysState()
 		
@@ -47,20 +42,33 @@ class RelayControl(object):
 		
 		print("--- Getting current relay states for  "+self._ip)
 		
-		response = urllib.request.urlopen("http://"+self._ip+"/status.xml")
+		authRealm = base64.b64encode(str.encode(self._username+":"+self._password)).decode("ascii");
+		conn = http.client.HTTPConnection(self._ip)
 		
-		#print(response.read())
-		tree = ET.parse(response)
-		root = tree.getroot()
-		#print(root)
-		
-		self._relay1State = bool(int(root[1].text))
-		self._relay2State = bool(int(root[2].text))
-		
-		print(("--- Relay 1 state for "+self._ip+" : "+ str(self._relay1State)))
-		print(("--- Relay 2 state for "+self._ip+" : "+ str(self._relay2State)))
-		print("\r\n")
+		headers = {
+			'Authorization': "Basic "+authRealm,
+			'cache-control': "no-cache"
+			}
 
+		try:
+			conn.request("GET", "/status.xml", headers=headers)
+			response = conn.getresponse()
+			print(str(response))
+			
+			tree = ET.parse(response)
+			root = tree.getroot()
+			
+			self._relay1State = bool(int(root[1].text))
+			self._relay2State = bool(int(root[2].text))
+			
+			print(("--- Relay 1 state for "+self._ip+" : "+ str(self._relay1State)))
+			print(("--- Relay 2 state for "+self._ip+" : "+ str(self._relay2State)))
+			print("\r\n")
+			
+		except:
+			print("Error setting relay state")
+			return
+		
 	@retry
 	def _SetRelay(self, num_relay, state):
 	
@@ -80,11 +88,23 @@ class RelayControl(object):
 			else:
 				self._relay2State = state
 		
-		response = urllib.request.urlopen("http://"+self._ip+"/relays.cgi?relay="+str(num_relay))
-		
-		print("--- Setting new relay state for "+self._ip+" OK")
-		
-		#self._UpdateRelaysState()
+
+		authRealm = base64.b64encode(str.encode(self._username+":"+self._password)).decode("ascii");
+		conn = http.client.HTTPConnection(self._ip)
+
+		headers = {
+			'Authorization': "Basic "+authRealm,
+			'cache-control': "no-cache"
+			}
+
+		try:
+			conn.request("GET", "/relays.cgi?relay="+str(num_relay), headers=headers)
+			print("--- Setting new relay state for "+self._ip+" OK")
+			
+		except:
+			print("Error setting relay state")
+			return
+
 	
 if __name__ == '__main__':
 	relayMonet = RelayControl("192.168.11.72", 80, "admin", "admin")

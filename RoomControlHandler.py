@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import http.server
+import http.client
 import socketserver
+import base64
 import re
 import sqlite3
 import datetime
@@ -14,15 +16,20 @@ import signal
 import logging
 import cgi
 import http.server
+import urllib.request
+import xml.etree.ElementTree as ET
+
+# Librairies
+import Config
+import CMSRecordingControl
 import RelayControl
 import KrammerControl
-import urllib.request
-import Config
+import CodecControl
 
 
 relayBox1 = None
 relayBox2 = None
-monetAutoLight = True
+vanGoghAutoLight = True
 vangoghAutoStores = False
 proxixi = True
 inputValue = 0
@@ -68,7 +75,7 @@ class MyRequestHandler(http.server.SimpleHTTPRequestHandler):
 
 def CodecEventHandler(xmlData):
 
-	global monetAutoLight
+	global vanGoghAutoLight
 	global vangoghAutoStores
 	global outputValue	
 	global inputValue
@@ -79,13 +86,15 @@ def CodecEventHandler(xmlData):
 	print("---- Handling Codec Event ----")
 	print("XML RECU")
 	print(xmlData)
+
+
 	
-	if (Config.codecs["monet"]["mac"] in xmlData)  and ((("CallSuccessful" in xmlData) and monetAutoLight == True) or ("lightButton:on"  in xmlData)):
-		print("Monet Call Connected")
+	if (Config.codecs["vangogh"]["mac"] in xmlData)  and ((("CallSuccessful" in xmlData) and vanGoghAutoLight == True) or ("lightButton:on"  in xmlData)):
+		print("Vangogh Call Connected")
 		print("Allumer la lumiere ?")
 		
 		relayBox1.relay1 = True
-		SendXMLDataToCodec(Config.codecs["monet"],
+		CodecControl.SendXMLDataToCodec(Config.codecs["vangogh"],
 		("<Command>"
 		"<UserInterface>"
 		"<Extensions>"
@@ -99,12 +108,12 @@ def CodecEventHandler(xmlData):
 		"</UserInterface>"
 		"</Command>"))
 			
-	if (Config.codecs["monet"]["mac"] in xmlData)  and ((("CallDisconnect" in xmlData) and monetAutoLight == True) or ("lightButton:off"  in xmlData)):
-		print("Monet Call Disconnected")
+	if (Config.codecs["vangogh"]["mac"] in xmlData)  and ((("CallDisconnect" in xmlData) and vanGoghAutoLight == True) or ("lightButton:off"  in xmlData)):
+		print("VanGogh Call Disconnected")
 		print("Eteindre la lumiere ?")
 		
 		relayBox1.relay1 = False
-		SendXMLDataToCodec(Config.codecs["monet"],
+		CodecControl.SendXMLDataToCodec(Config.codecs["vangogh"],
 		("<Command>"
 		"<UserInterface>"
 		"<Extensions>"
@@ -118,12 +127,12 @@ def CodecEventHandler(xmlData):
 		"</UserInterface>"
 		"</Command>"))
 			
-	if (Config.codecs["monet"]["mac"] in xmlData)  and ("autoLightButton:on"  in xmlData):
-		print("Monet Auto Light Enabled")
+	if (Config.codecs["vangogh"]["mac"] in xmlData)  and ("autoLightButton:on"  in xmlData):
+		print("VanGogh Auto Light Enabled")
 		
-		monetAutoLight = True
+		vanGoghAutoLight = True
 		
-		SendXMLDataToCodec(Config.codecs["monet"],
+		CodecControl.SendXMLDataToCodec(Config.codecs["vangogh"],
 		("<Command>"
 		"<UserInterface>"
 		"<Extensions>"
@@ -137,12 +146,12 @@ def CodecEventHandler(xmlData):
 		"</UserInterface>"
 		"</Command>"))
 		
-	if (Config.codecs["monet"]["mac"] in xmlData)  and ("autoLightButton:off"  in xmlData):
-		print("Monet Auto Light Disabled")
+	if (Config.codecs["vangogh"]["mac"] in xmlData)  and ("autoLightButton:off"  in xmlData):
+		print("VanGogh Auto Light Disabled")
 		
-		monetAutoLight = False
+		vanGoghAutoLight = False
 		
-		SendXMLDataToCodec(Config.codecs["monet"],
+		CodecControl.SendXMLDataToCodec(Config.codecs["vangogh"],
 		("<Command>"
 		"<UserInterface>"
 		"<Extensions>"
@@ -157,11 +166,11 @@ def CodecEventHandler(xmlData):
 		"</Command>"))
 
 	if (Config.codecs["vangogh"]["mac"] in xmlData)  and ("storeAutoButton:on"  in xmlData):
-		print("Monet Auto Light Enabled")
+		print("VanGogh Auto Store Enabled")
 		
 		vangoghAutoStores = True
 		
-		SendXMLDataToCodec(Config.codecs["vangogh"],
+		CodecControl.SendXMLDataToCodec(Config.codecs["vangogh"],
 		("<Command>"
 		"<UserInterface>"
 		"<Extensions>"
@@ -176,11 +185,11 @@ def CodecEventHandler(xmlData):
 		"</Command>"))
 		
 	if (Config.codecs["vangogh"]["mac"] in xmlData)  and ("storeAutoButton:off"  in xmlData):
-		print("Monet Auto Light Disabled")
+		print("VanGogh Auto Store Disabled")
 		
 		vangoghAutoStores = False
 		
-		SendXMLDataToCodec(Config.codecs["vangogh"],
+		CodecControl.SendXMLDataToCodec(Config.codecs["vangogh"],
 		("<Command>"
 		"<UserInterface>"
 		"<Extensions>"
@@ -264,7 +273,7 @@ def CodecEventHandler(xmlData):
 		
 		name = inputNames[inputValue]
 		
-		SendXMLDataToCodec(Config.codecs["kandinsky"],
+		CodecControl.SendXMLDataToCodec(Config.codecs["kandinsky"],
 		("<Command>"
 		"<UserInterface>"
 		"<Extensions>"
@@ -278,7 +287,7 @@ def CodecEventHandler(xmlData):
 		"</UserInterface>"
 		"</Command>"))
 		
-		SendXMLDataToCodec(Config.codecs["kandinskySpycam"],
+		CodecControl.SendXMLDataToCodec(Config.codecs["kandinskySpycam"],
 		("<Command>"
 		"<UserInterface>"
 		"<Extensions>"
@@ -303,7 +312,7 @@ def CodecEventHandler(xmlData):
 		name = outputNames[outputValue]
 		
 		
-		SendXMLDataToCodec(Config.codecs["kandinsky"],
+		CodecControl.SendXMLDataToCodec(Config.codecs["kandinsky"],
 		("<Command>"
 		"<UserInterface>"
 		"<Extensions>"
@@ -317,7 +326,7 @@ def CodecEventHandler(xmlData):
 		"</UserInterface>"
 		"</Command>"))
 		
-		SendXMLDataToCodec(Config.codecs["kandinskySpycam"],
+		CodecControl.SendXMLDataToCodec(Config.codecs["kandinskySpycam"],
 		("<Command>"
 		"<UserInterface>"
 		"<Extensions>"
@@ -337,7 +346,7 @@ def CodecEventHandler(xmlData):
 	if ((Config.codecs["kandinsky"]["mac"] in xmlData) or (Config.codecs["kandinskySpycam"]["mac"] in xmlData)) and ("Proxixi:off" in xmlData) :
 		
 		proxixi = False
-		SendXMLDataToCodec(Config.codecs["kandinsky"],
+		CodecControl.SendXMLDataToCodec(Config.codecs["kandinsky"],
 		("<Configuration>"
 		"<Proximity>"
 		"<Mode>Off</Mode>"
@@ -347,88 +356,24 @@ def CodecEventHandler(xmlData):
 	if ((Config.codecs["kandinsky"]["mac"] in xmlData) or (Config.codecs["kandinskySpycam"]["mac"] in xmlData)) and ("Proxixi:on" in xmlData) :
 		
 		proxixi = True
-		SendXMLDataToCodec(Config.codecs["kandinsky"],
+		CodecControl.SendXMLDataToCodec(Config.codecs["kandinsky"],
 		("<Configuration>"
 		"<Proximity>"
 		"<Mode>On</Mode>"
 		"</Proximity>"
 		"</Configuration>"))
+
+
+	if (Config.codecs["kandinsky"]["mac"] in xmlData)  and (("startRecording_Button"  in xmlData) and ("<Pressed item=\"1\">"  in xmlData)):
+		print("Recording Start Button Clicked")
+		CMSRecordingControl.SetRecordingFromEpXMLNotif(xmlData,True)
 		
-"""		
-	if ("On</Mode>" in xmlData) :
-		proxixi = True
-		SendXMLDataToCodec(Config.codecs["kandinsky"],
-		("<Command>"
-		"<UserInterface>"
-		"<Extensions>"
-		"<Widget>"
-		"<SetValue command=\"True\">"
-		"<Value>on</Value>"
-		"<WidgetId>Proxixi</WidgetId>"
-		"</SetValue>"
-		"</Widget>"
-		"</Extensions>"
-		"</UserInterface>"
-		"</Command>"))
 		
-	if ("Off</Mode>" in xmlData) :
-		proxixi = True
-		SendXMLDataToCodec(Config.codecs["kandinsky"],
-		("<Command>"
-		"<UserInterface>"
-		"<Extensions>"
-		"<Widget>"
-		"<SetValue command=\"True\">"
-		"<Value>off</Value>"
-		"<WidgetId>Proxixi</WidgetId>"
-		"</SetValue>"
-		"</Widget>"
-		"</Extensions>"
-		"</UserInterface>"
-		"</Command>"))
-"""		
+	if (Config.codecs["kandinsky"]["mac"] in xmlData)  and (("endRecording_Button"  in xmlData) and ("<Pressed item=\"1\">"  in xmlData)):
+		print("Recording Stop Button Clicked")
+		CMSRecordingControl.SetRecordingFromEpXMLNotif(xmlData,False)
 	
-def SendXMLDataToCodec(codec,xml_data):
-	print("Begin sending data to codec")
 
-	req = urllib.request.Request(url="http://"+codec["ip"]+"/putxml", headers={'Content-Type': 'application/xml'})
-		
-	xml_data = xml_data.encode('utf-8')
-	print("Request:")
-	print(xml_data)
-	
-	try:
-		response = urllib.request.urlopen(req, xml_data)
-		return response.read().decode("utf-8")
-	except:
-		print("Error sending data to codec")
-		return
-
-	print("\r\nResponse:")
-	print(response.read().decode("utf-8"))
-	print("End sending data to codec\r\n")
-	
-def GetXMLDataFromCodec(codec,target):
-	
-	#Cette fonction permet de connaitre l'état d'un élément du codec. Par exemple si target=/Configuration, on va pouvoir connaître l'état des configs du codec
-	#Le retour est un XML qui rassemble les états qui nous interesse
-	
-	print("Begin getting data from codec")
-
-	req = urllib.request.Request(url="http://"+codec["ip"]+"/getxml?location="+target, headers={'Content-Type': 'application/xml'})
-	
-	try:
-		response = urllib.request.urlopen(req)
-		xml = response.read().decode("utf-8")
-		print(xml)
-		CodecEventHandler(xml)
-	except:
-		print("Error sending data to codec")
-		return
-
-	print("\r\nResponse:")
-	print(response.read().decode("utf-8"))
-	print("End sending data to codec\r\n")
 	
 def SendCodecsFeedbackReg():
 	feedbackRegMonet = ("<Command>"
@@ -480,18 +425,18 @@ def SendCodecsFeedbackReg():
 		"</Command>")
 		
 	print("Starting Codec HTTPFeedback Registration \r\n")
-	SendXMLDataToCodec(Config.codecs["monet"], feedbackRegMonet)
-	SendXMLDataToCodec(Config.codecs["vangogh"], feedbackRegVangogh)
-	SendXMLDataToCodec(Config.codecs["kandinsky"], feedbackRegKandi)
-	SendXMLDataToCodec(Config.codecs["kandinskySpycam"], feedbackRegSpycam)
+	#CodecControl.SendXMLDataToCodec(Config.codecs["monet"], feedbackRegMonet)
+	CodecControl.SendXMLDataToCodec(Config.codecs["vangogh"], feedbackRegVangogh)
+	CodecControl.SendXMLDataToCodec(Config.codecs["kandinsky"], feedbackRegKandi)
+	CodecControl.SendXMLDataToCodec(Config.codecs["kandinskySpycam"], feedbackRegSpycam)
 	print("Feedback Codec HTTPFeedback Completed")
 	
 def UpdateExternalStates():
 
-	# Etats Lumiere Monet
+	# Etats Lumiere vanGogh
 	
 	if relayBox1.relay1 == True:
-		SendXMLDataToCodec(Config.codecs["monet"],
+		CodecControl.SendXMLDataToCodec(Config.codecs["vangogh"],
 		("<Command>"
 		"<UserInterface>"
 		"<Extensions>"
@@ -505,7 +450,7 @@ def UpdateExternalStates():
 		"</UserInterface>"
 		"</Command>"))
 	else:
-		SendXMLDataToCodec(Config.codecs["monet"],
+		CodecControl.SendXMLDataToCodec(Config.codecs["vangogh"],
 		("<Command>"
 		"<UserInterface>"
 		"<Extensions>"
@@ -520,10 +465,10 @@ def UpdateExternalStates():
 		"</Command>"))
 		
 	
-	#Etat Mode lumiere auto Monet
+	#Etat Mode lumiere auto vanGogh
 	
-	if monetAutoLight == True:
-		SendXMLDataToCodec(Config.codecs["monet"],
+	if vanGoghAutoLight == True:
+		CodecControl.SendXMLDataToCodec(Config.codecs["vangogh"],
 		("<Command>"
 		"<UserInterface>"
 		"<Extensions>"
@@ -537,7 +482,7 @@ def UpdateExternalStates():
 		"</UserInterface>"
 		"</Command>"))
 	else:
-		SendXMLDataToCodec(Config.codecs["monet"],
+		CodecControl.SendXMLDataToCodec(Config.codecs["vangogh"],
 		("<Command>"
 		"<UserInterface>"
 		"<Extensions>"
@@ -551,9 +496,10 @@ def UpdateExternalStates():
 		"</UserInterface>"
 		"</Command>"))
 	
+	# Etat Mode Auto Stores VanGogh
 	
 	if vangoghAutoStores == True:
-		SendXMLDataToCodec(Config.codecs["vangogh"],
+		CodecControl.SendXMLDataToCodec(Config.codecs["vangogh"],
 		("<Command>"
 		"<UserInterface>"
 		"<Extensions>"
@@ -567,7 +513,7 @@ def UpdateExternalStates():
 		"</UserInterface>"
 		"</Command>"))
 	else:
-		SendXMLDataToCodec(Config.codecs["vangogh"],
+		CodecControl.SendXMLDataToCodec(Config.codecs["vangogh"],
 		("<Command>"
 		"<UserInterface>"
 		"<Extensions>"
@@ -580,15 +526,6 @@ def UpdateExternalStates():
 		"</Extensions>"
 		"</UserInterface>"
 		"</Command>"))
-	
-		# CHECK DES RELAIS DES RIDEAUX
-		
-		
-	#xmml = GetXMLDataFromCodec(Config.codecs["kandinsky"],"/Configuration/Proximity/Mode")
-	
-	#Mettre a jour le bouton proximity
-
-	
 		
 def signal_term_handler(signal, frame):
 	print('got SIGTERM')
@@ -596,23 +533,9 @@ def signal_term_handler(signal, frame):
 		
 try:
 	if __name__ == "__main__":
-	
 		
-
-		# HTTP password control
-		authinfo = urllib.request.HTTPPasswordMgrWithDefaultRealm()
-		authinfo.add_password(None, Config.codecs["monet"]["ip"], Config.codecs["monet"]["user"], Config.codecs["monet"]["password"])
-		authinfo.add_password(None, Config.codecs["vangogh"]["ip"], Config.codecs["vangogh"]["user"], Config.codecs["vangogh"]["password"])
-		authinfo.add_password(None, Config.codecs["kandinsky"]["ip"], Config.codecs["kandinsky"]["user"], Config.codecs["kandinsky"]["password"])
-		authinfo.add_password(None, Config.codecs["kandinskySpycam"]["ip"], Config.codecs["kandinskySpycam"]["user"], Config.codecs["kandinskySpycam"]["password"])
-		authinfo.add_password(None, "10.1.100.98", "admin", "admin")
-		authinfo.add_password(None, "10.1.100.99", "admin", "admin")
-		handler = urllib.request.HTTPBasicAuthHandler(authinfo)
-		myopener = urllib.request.build_opener(handler)
-		opened = urllib.request.install_opener(myopener)
-		
-		relayBox1 = RelayControl.RelayControl("10.1.100.99", 80, "admin", "admin") #Relais Monet
-		relayBox2 = RelayControl.RelayControl("10.1.100.98", 80, "admin", "admin") #Relais Vangogh
+		relayBox1 = RelayControl.RelayControl("10.1.100.99", 80, "admin", "admin") #Relais Vangogh Lumieres
+		relayBox2 = RelayControl.RelayControl("10.1.100.98", 80, "admin", "admin") #Relais Vangogh Stores
 		krammer = KrammerControl.KrammerControl()
 			
 		signal.signal(signal.SIGTERM, signal_term_handler)
